@@ -1,0 +1,9 @@
+{
+    "id": "",
+    "name": "Feeling Classification",
+    "format": "text/csv",
+    "type": "nlp-classifier",
+    "status": "inProgress",
+    "isPublic": true,
+    "owners": ["jhonatan98rios"]
+}

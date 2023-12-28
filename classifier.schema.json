@@ -1,0 +1,12 @@
+{
+    "name": "Feeling Classification",
+    "size": 5000,
+    "format": "text/csv",
+    "accuracy": 0.5,
+    "type": "nlp-classifier",
+    "status": "inProgress",
+    "rating": 5,
+    "path": "train.csv",
+    "isPublic": true,
+    "owners": ["jhonatan98rios"]
+}
