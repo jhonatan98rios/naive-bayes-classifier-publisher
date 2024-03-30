@@ -1,5 +1,7 @@
-import { SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand } from '@aws-sdk/client-sqs';
+import { SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand, ReceiveMessageCommandOutput } from '@aws-sdk/client-sqs';
 import * as dotenv from 'dotenv'
+import { InternalServerError } from 'elysia';
+import { handlePromise } from '../../utils/handlePromise';
 
 dotenv.config()
 
@@ -8,17 +10,14 @@ export class SQSProvider {
   private queueUrl: string;
 
   constructor() {
-    this.sqsClient = new SQSClient({ region: "us-east-1" });
-    this.queueUrl = "naive-bayes-classifier-model-queue"
+    this.sqsClient = new SQSClient({ region: process.env.AWS_REGION! });
+    this.queueUrl = process.env.QUEUE_URL!
   }
 
   public async sendMessage(message: string): Promise<void> {
-    try {
-      const command = new SendMessageCommand({ QueueUrl: this.queueUrl, MessageBody: message });
-      await this.sqsClient.send(command);
-    } catch (err) {
-      throw new Error(err as string)
-    }
+    const command = new SendMessageCommand({ QueueUrl: this.queueUrl, MessageBody: message });
+    const [err] = await handlePromise(this.sqsClient.send(command))
+    if (err) throw new InternalServerError(`Error while sending message to sqs: ${err}`)
   }
 
   public async receiveMessage(): Promise<string | undefined> {
@@ -27,8 +26,10 @@ export class SQSProvider {
         MaxNumberOfMessages: 1,
         WaitTimeSeconds: 20
     })
-    
-    const response = await this.sqsClient.send(command);
+
+    const [sendMessageError, response] = await handlePromise<ReceiveMessageCommandOutput>(this.sqsClient.send(command))
+    if (sendMessageError) throw new Error(`Error while sending message: ${sendMessageError}`)
+
 
     if (response.Messages && response.Messages.length > 0) {
       const message = response.Messages[0];
@@ -44,6 +45,7 @@ export class SQSProvider {
 
   private async deleteMessage(receiptHandle: string): Promise<void> {
     const command = new DeleteMessageCommand({ QueueUrl: this.queueUrl, ReceiptHandle: receiptHandle });
-    await this.sqsClient.send(command);
+    const [err] = await handlePromise(this.sqsClient.send(command))
+    if (err) throw new InternalServerError(`Error while deleting the message: ${err}`)
   }
 }

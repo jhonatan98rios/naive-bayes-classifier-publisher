@@ -1,29 +1,23 @@
 import * as dotenv from 'dotenv'
-import { Elysia, t } from "elysia";
+import { Elysia } from "elysia";
 import { cors } from '@elysiajs/cors'
 
+import { beforeHandle } from './infra/auth/beforeHandle';
 import Database from './infra/database/connection';
-import ClassifierPublisherController from "./controllers/ClassifierPublisherController";
-
-const app = new Elysia()
-const classsifierController = new ClassifierPublisherController()
+import { handleError } from './infra/middlewares/handleError';
+import { router } from './infra/router/routes';
 
 dotenv.config()
-Database.connect()
-
+await Database.connect()
 const corsMiddleware = cors({ origin: '*' })
-app.use(corsMiddleware)
 
-app.post("/publish", classsifierController.publish)
+const app = new Elysia();
 
-app.post('/upload', classsifierController.upload, {
-  body: t.Object({
-    file: t.File(),
-    filename: t.String()
-  })
-})
-
-app.listen(3001)
+app
+  .use(corsMiddleware)
+  .onError(handleError)
+  .guard({ beforeHandle }, router(app))
+  .listen(process.env.PORT!);
 
 console.log(
   `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`

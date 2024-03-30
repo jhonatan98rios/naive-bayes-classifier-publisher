@@ -7,6 +7,7 @@ export enum STATUS {
 export class Classifier {
     id: string
     name: string
+    description: string
     size: number
     format: string
     accuracy: number
@@ -16,9 +17,10 @@ export class Classifier {
     isPublic: boolean
     owners: string[]
 
-    constructor({ id, name, size, format, accuracy, status, rating, path, isPublic, owners }: Classifier) {
+    constructor({ id, name, description, size, format, accuracy, status, rating, path, isPublic, owners }: Classifier) {
         this.id = id
         this.name = name
+        this.description = description
         this.size = size
         this.format = format
         this.accuracy = accuracy

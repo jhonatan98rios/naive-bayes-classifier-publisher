@@ -1,4 +1,4 @@
-import { IClassifier, Classifier } from "../../domain/entity/Classifier";
+import { Classifier } from "../../domain/entity/Classifier";
 import { AbstractClassifierRepository } from "../../domain/repositories/AbstractClassifierRepository";
 import { IClassifierModel, ClassifierModel } from "../models/Classifier.schema";
 
@@ -11,18 +11,18 @@ export class MongoDBClassifierRepository implements AbstractClassifierRepository
         this.classifierModel = ClassifierModel.getInstance()
     }
 
-    async create(classifier: IClassifier): Promise<IClassifier> {
+    async create(classifier: Classifier): Promise<Classifier> {
         await this.classifierModel.create(classifier)
         return classifier
     }
 
-    async readAll(): Promise<IClassifier[]> {
+    async readAll(): Promise<Classifier[]> {
         const users = await this.classifierModel.find()
         return users
     }
 
-    async readOneById(classifier: string): Promise<IClassifier | null> {
-        const foundClassifier = await this.classifierModel.findOne({ classifier })
+    async readOneById(id: string): Promise<Classifier | null> {
+        const foundClassifier = await this.classifierModel.findOne({ id })
         return foundClassifier
     }
 
