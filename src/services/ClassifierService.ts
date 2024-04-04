@@ -1,6 +1,6 @@
 import { EventPayload } from "../domain/entity/EventPayload"
 import { AbstractClassifierRepository } from '../domain/repositories/AbstractClassifierRepository';
-import { Classifier, STATUS } from '../domain/entity/Classifier';
+import { Classifier, MODEL_TYPE, STATUS } from '../domain/entity/Classifier';
 import { SQSProvider } from '../infra/providers/SQSProvider';
 import { CreateClassifierDTO } from "../domain/dtos/CreateClassifierDTO";
 import { handlePromise } from "../utils/handlePromise";
@@ -29,11 +29,18 @@ export class ClassifierService {
 
         // I need to set a logic to define when is NLP and when is Time Series
         const message = JSON.stringify(eventPayload)
-        const queueUrl = true ? process.env.NLP_QUEUE_URL! : process.env.TIME_SERIES_QUEUE_URL!
+        const queueUrl = this.getQueueStrategy(type)
 
         const [sendMessageError] = await handlePromise(this.sqsProvider.sendMessage(message, queueUrl))
         if (sendMessageError) throw new InternalServerError(`Error while sending message ${sendMessageError}`)
             
         return classifier
+    }
+
+    getQueueStrategy(type: MODEL_TYPE) {
+        return {
+            'nlp': process.env.NLP_QUEUE_URL!,
+            'num': process.env.NUM_QUEUE_URL!
+        }[type]
     }
 }
