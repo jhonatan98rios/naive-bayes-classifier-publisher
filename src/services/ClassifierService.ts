@@ -13,11 +13,11 @@ export class ClassifierService {
 
     public async execute(classifierDTO: CreateClassifierDTO) {
 
-        const { id, name, description, format, isPublic, owners, path, status, size } = classifierDTO
-        const eventPayload = new EventPayload({ id, name, description, format, isPublic, owners, path, status })
+        const { id, name, description, type, format, isPublic, owners, path, status, size } = classifierDTO
+        const eventPayload = new EventPayload({ id, name, description, type, format, isPublic, owners, path, status })
 
         const classifier = new Classifier({
-            id, name, description, format, isPublic, owners, path, size, rating: 0, accuracy: 0, status: STATUS.INPROGRESS,
+            id, name, description, type, format, isPublic, owners, path, size, rating: 0, accuracy: 0, status: STATUS.INPROGRESS,
         })
 
         const [readClassifierError, existingClassifier] = await handlePromise(this.classifierRepository.readOneById(id))
@@ -27,7 +27,11 @@ export class ClassifierService {
         const [createClassifierError] = await handlePromise(this.classifierRepository.create(classifier))
         if (createClassifierError) throw new InternalServerError(`Error while creating classifier: ${createClassifierError}`)
 
-        const [sendMessageError] = await handlePromise(this.sqsProvider.sendMessage(JSON.stringify(eventPayload)))
+        // I need to set a logic to define when is NLP and when is Time Series
+        const message = JSON.stringify(eventPayload)
+        const queueUrl = true ? process.env.NLP_QUEUE_URL! : process.env.TIME_SERIES_QUEUE_URL!
+
+        const [sendMessageError] = await handlePromise(this.sqsProvider.sendMessage(message, queueUrl))
         if (sendMessageError) throw new InternalServerError(`Error while sending message ${sendMessageError}`)
             
         return classifier

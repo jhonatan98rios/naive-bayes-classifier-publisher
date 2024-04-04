@@ -1,7 +1,10 @@
+import { MODEL_TYPE } from "../entity/Classifier"
+
 export class CreateClassifierDTO {
     id: string
     name: string
     description: string
+    type: MODEL_TYPE
     size: number
     format: string
     status: string
@@ -9,10 +12,11 @@ export class CreateClassifierDTO {
     isPublic: boolean
     owners: string[]
 
-    constructor({ id, name, description, size, format, status, path, isPublic, owners }: CreateClassifierDTO){
+    constructor({ id, name, description, type, size, format, status, path, isPublic, owners }: CreateClassifierDTO){
         this.id = id
         this.name = name
         this.description = description
+        this.type = type
         this.size = size
         this.format = format
         this.status = status
